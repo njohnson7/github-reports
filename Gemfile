@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-ruby '2.1.2'
+ruby '2.5.1'
 
 gem "rake"
 gem "octokit"
@@ -13,6 +13,7 @@ gem "faraday"
 
 group :development, :test do
   gem "byebug"
+  gem "awesome_print"
 end
 
 group :test do

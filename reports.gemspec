@@ -1,4 +1,4 @@
-$:.push File.expand_path("../lib", __FILE__)
+pec/reports/github_api_client_spec.rb:.push File.expand_path("../lib", __FILE__)
 
 require 'reports'
 
