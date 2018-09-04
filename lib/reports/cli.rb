@@ -1,3 +1,6 @@
+require 'dotenv'
+Dotenv.load
+
 require 'rubygems'
 require 'bundler/setup'
 require 'thor'
@@ -10,12 +13,13 @@ module Reports
     desc 'user_info USERNAME', 'Get information for a user'
     def user_info(username)
       puts "Getting info for #{username}..."
-      user = client.user_info(username)
 
-      puts "name: #{user.name}"
-      puts "location: #{user.location}"
-      puts "public repos: #{user.public_repos}"
-    rescue NonexistentUser => error
+      data = client.user_info(username)
+
+      puts "name: #{data.name}"
+      puts "location: #{data.location}"
+      puts "public repos: #{data.public_repos}"
+    rescue Error => error
       puts "ERROR #{error.message}"
       exit 1
     end
