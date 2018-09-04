@@ -13,13 +13,15 @@ module Reports
   VALID_STATUS_CODES = [200, 302, 403, 404, 422]
 
   class GitHubAPIClient
-    def initialize
-      level = ENV['LOG_LEVEL']
+    def initialize(token)
+      # level = ENV['LOG_LEVEL']
       @logger = Logger.new STDOUT
       @logger.formatter = proc { |severity, datetime, program, message| "#{message}\n" }
+      @token = token
     end
 
     def user_info(username)
+      headers = { 'Authorization' => "token #{@token}" }
       url = "https://api.github.com/users/#{username}"
 
       start_time = Time.now
@@ -29,6 +31,9 @@ module Reports
 
       if !VALID_STATUS_CODES.include? response.status
         raise RequestFailure, JSON.parse(response.body)['message']
+      end
+      if response.status == 401
+        raise AuthenticationFailure, "Authentication Failed. Please set the 'GITHUB_TOKEN' environment variable to a valid Github access token."
       end
       if response.status == 404
         raise NonexistentUser, "'#{username}' does not exist"
