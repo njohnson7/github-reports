@@ -1,6 +1,7 @@
 require 'faraday'
 require 'json'
 require 'logger'
+require_relative 'middleware/logging'
 
 module Reports
   class Error < StandardError; end
@@ -14,19 +15,13 @@ module Reports
 
   class GitHubAPIClient
     def initialize(token)
-      # level = ENV['LOG_LEVEL']
-      @logger = Logger.new STDOUT
-      @logger.formatter = proc { |severity, datetime, program, message| "#{message}\n" }
       @token = token
     end
 
     def user_info(username)
       headers    = { 'Authorization' => "token #{@token}" }
       url        = "https://api.github.com/users/#{username}"
-      start_time = Time.now
-      response   = Faraday.get url
-      duration   = Time.now - start_time
-      @logger.debug { '-> %s %s %d (%.3f s)' % [url, 'GET', response.status, duration] }
+      response   = connection.get(url, nil, headers)
       if !VALID_STATUS_CODES.include? response.status
         raise RequestFailure, JSON.parse(response.body)['message']
       end
@@ -41,12 +36,9 @@ module Reports
     end
 
     def public_repos_for_user(username)
-      headers    = { 'Authorization' => "token #{@token}" }
-      url        = "https://api.github.com/users/#{username}/repos"
-      start_time = Time.now
-      response   = Faraday.get url
-      duration   = Time.now - start_time
-      @logger.debug { '-> %s %s %d (%.3f s)' % [url, 'GET', response.status, duration] }
+      headers  = { 'Authorization' => "token #{@token}" }
+      url      = "https://api.github.com/users/#{username}/repos"
+      response = connection.get(url, nil, headers)
       if !VALID_STATUS_CODES.include? response.status
         raise RequestFailure, JSON.parse(response.body)['message']
       end
@@ -58,6 +50,13 @@ module Reports
       end
       data = JSON.parse response.body
       data.map { |repo_data| Repo.new repo_data['full_name'], repo_data['url'] }
+    end
+
+    def connection
+      @connection ||= Faraday::Connection.new do |builder|
+        builder.use Middleware::Logging
+        builder.adapter Faraday.default_adapter
+      end
     end
   end
 end
