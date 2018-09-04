@@ -11,9 +11,13 @@ module Reports
     def user_info(username)
       puts "Getting info for #{username}..."
       user = client.user_info(username)
+
       puts "name: #{user.name}"
       puts "location: #{user.location}"
       puts "public repos: #{user.public_repos}"
+    rescue NonexistentUser => error
+      puts "ERROR #{error.message}"
+      exit 1
     end
 
     desc "console", "Open an RB session with all dependencies loaded and API defined."
