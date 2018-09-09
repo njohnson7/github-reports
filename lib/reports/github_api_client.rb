@@ -32,6 +32,10 @@ module Reports
       url      = "https://api.github.com/users/#{username}/repos"
       response = connection.get(url)
 
+require 'awesome_print'
+ap response
+puts response.body.map { |repo_data| repo_data['ssh_url'] }
+
       if response.status == 404
         raise NonexistentUser, "'#{username}' does not exist"
       end
